@@ -80,10 +80,33 @@ export default {
             height: "0",
           },
         },
+        "slide-up": {
+          from: {
+            transform: "translateY(100%)",
+            opacity: "0",
+          },
+          to: {
+            transform: "translateY(0)",
+            opacity: "1",
+          },
+        },
+        "fade-in": {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-up": "slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "fade-in": "fade-in 0.2s ease-out",
+      },
+      fontFamily: {
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif'],
       },
     },
   },
