@@ -23,16 +23,16 @@ interface MapViewProps {
   onSpotClick: (spot: Spot) => void;
 }
 
+const MAPBOX_TOKEN = "pk.eyJ1IjoiY29ybW9zdG9yZSIsImEiOiJjbWgwZ2U4NWUwaG9tNWtxdWM0cTEyamtyIn0.eCz_pytNEYgJyKjnP9J_Lw";
+
 const MapView = ({ onSpotClick }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState("");
-  const [showTokenInput, setShowTokenInput] = useState(true);
 
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || map.current) return;
+    if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -88,12 +88,10 @@ const MapView = ({ onSpotClick }: MapViewProps) => {
 
     map.current.addControl(geolocate, "bottom-right");
 
-    setShowTokenInput(false);
-
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken, onSpotClick]);
+  }, [onSpotClick]);
 
   return (
     <div className="relative h-full w-full">
@@ -120,50 +118,14 @@ const MapView = ({ onSpotClick }: MapViewProps) => {
       {/* Map Container */}
       <div ref={mapContainer} className="absolute inset-0 pt-16 pb-20" />
 
-      {/* Token Input */}
-      {showTokenInput && (
-        <div className="absolute inset-0 pt-16 pb-20 bg-background flex items-center justify-center p-4">
-          <div className="ios-card p-6 max-w-md w-full space-y-4">
-            <h3 className="text-lg font-semibold text-center">Configuration Mapbox</h3>
-            <p className="text-sm text-muted-foreground text-center">
-              Entrez votre token Mapbox public pour afficher la carte.{" "}
-              <a 
-                href="https://account.mapbox.com/access-tokens/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-ios-primary hover:underline"
-              >
-                Obtenez-en un gratuitement ici
-              </a>
-            </p>
-            <Input
-              type="text"
-              placeholder="pk.eyJ1..."
-              value={mapboxToken}
-              onChange={(e) => setMapboxToken(e.target.value)}
-              className="font-mono text-xs"
-            />
-            <Button 
-              onClick={() => mapboxToken && setShowTokenInput(false)}
-              disabled={!mapboxToken}
-              className="w-full"
-            >
-              Activer la carte
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Info Banner */}
-      {!showTokenInput && (
-        <div className="absolute top-20 left-4 right-4 z-10">
-          <div className="ios-card p-3 shadow-lg">
-            <p className="text-sm text-muted-foreground text-center">
-              Carte interactive - Tapez sur un spot pour plus de détails
-            </p>
-          </div>
+      <div className="absolute top-20 left-4 right-4 z-10">
+        <div className="ios-card p-3 shadow-lg">
+          <p className="text-sm text-muted-foreground text-center">
+            Carte interactive - Tapez sur un spot pour plus de détails
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };
