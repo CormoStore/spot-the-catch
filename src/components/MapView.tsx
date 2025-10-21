@@ -58,12 +58,11 @@ const MapView = ({ onSpotClick }: MapViewProps) => {
       <div className="absolute inset-0 pt-16 pb-20">
         <Map
           {...viewState}
-          onViewportChange={setViewState}
-          mapboxApiAccessToken={MAPBOX_TOKEN}
+          onMove={(evt) => setViewState(evt.viewState)}
+          mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle="mapbox://styles/mapbox/outdoors-v12"
           scrollZoom={false}
-          width="100%"
-          height="100%"
+          style={{ width: "100%", height: "100%" }}
         >
           {/* Markers */}
           {mockSpots.map((spot) => (
@@ -91,10 +90,11 @@ const MapView = ({ onSpotClick }: MapViewProps) => {
           ))}
 
           {/* Navigation Controls */}
-          <NavigationControl />
+          <NavigationControl position="top-right" />
 
           {/* Geolocate Control */}
           <GeolocateControl
+            position="bottom-right"
             positionOptions={{ enableHighAccuracy: true }}
             trackUserLocation={true}
           />
