@@ -1,8 +1,8 @@
-import { MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
+import { useState } from "react";
+import Map, { Marker, NavigationControl, GeolocateControl } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 interface Spot {
@@ -26,72 +26,11 @@ interface MapViewProps {
 const MAPBOX_TOKEN = "pk.eyJ1IjoiY29ybW9zdG9yZSIsImEiOiJjbWgwZ2U4NWUwaG9tNWtxdWM0cTEyamtyIn0.eCz_pytNEYgJyKjnP9J_Lw";
 
 const MapView = ({ onSpotClick }: MapViewProps) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-
-  useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
-      center: [2.3333, 46.603354], // France
-      zoom: 5.5,
-      pitch: 0,
-    });
-
-    // Add navigation controls (iOS style)
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: false,
-        showCompass: true,
-      }),
-      "top-right"
-    );
-
-    // Disable scroll zoom for better mobile UX
-    map.current.scrollZoom.disable();
-
-    // Add markers for spots
-    mockSpots.forEach((spot) => {
-      const el = document.createElement("div");
-      el.className = "cursor-pointer";
-      el.innerHTML = `
-        <div class="relative">
-          <div class="absolute -inset-2 bg-ios-primary/20 rounded-full animate-pulse"></div>
-          <div class="bg-ios-primary rounded-full p-2 shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </div>
-        </div>
-      `;
-      
-      el.addEventListener("click", () => onSpotClick(spot));
-
-      new mapboxgl.Marker({ element: el })
-        .setLngLat([spot.lng, spot.lat])
-        .addTo(map.current!);
-    });
-
-    // Add geolocate control
-    const geolocate = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true,
-      },
-      trackUserLocation: true,
-      showUserHeading: true,
-    });
-
-    map.current.addControl(geolocate, "bottom-right");
-
-    return () => {
-      map.current?.remove();
-    };
-  }, [onSpotClick]);
+  const [viewState, setViewState] = useState({
+    longitude: 2.3333,
+    latitude: 46.603354,
+    zoom: 5.5,
+  });
 
   return (
     <div className="relative h-full w-full">
@@ -116,7 +55,51 @@ const MapView = ({ onSpotClick }: MapViewProps) => {
       </div>
 
       {/* Map Container */}
-      <div ref={mapContainer} className="absolute inset-0 pt-16 pb-20" />
+      <div className="absolute inset-0 pt-16 pb-20">
+        <Map
+          {...viewState}
+          onViewportChange={setViewState}
+          mapboxApiAccessToken={MAPBOX_TOKEN}
+          mapStyle="mapbox://styles/mapbox/outdoors-v12"
+          scrollZoom={false}
+          width="100%"
+          height="100%"
+        >
+          {/* Markers */}
+          {mockSpots.map((spot) => (
+            <Marker
+              key={spot.id}
+              longitude={spot.lng}
+              latitude={spot.lat}
+            >
+              <div 
+                className="relative cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSpotClick(spot);
+                }}
+              >
+                <div className="absolute -inset-2 bg-ios-primary/20 rounded-full animate-pulse"></div>
+                <div className="bg-ios-primary rounded-full p-2 shadow-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                </div>
+              </div>
+            </Marker>
+          ))}
+
+          {/* Navigation Controls */}
+          <NavigationControl />
+
+          {/* Geolocate Control */}
+          <GeolocateControl
+            positionOptions={{ enableHighAccuracy: true }}
+            trackUserLocation={true}
+          />
+        </Map>
+      </div>
 
       {/* Info Banner */}
       <div className="absolute top-20 left-4 right-4 z-10">
